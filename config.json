@@ -1,9 +1,0 @@
-{
-    "username": "your_username",
-    "password": "your_password",
-    "ext_expel_list": [],
-    "cid_expel_list": [],
-	"cid_include_list": [],
-    "save_path": "",
-    "keep_dirs": false
-}
