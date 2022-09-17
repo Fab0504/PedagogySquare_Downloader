@@ -109,7 +109,7 @@ def main():
         try:
             os.chdir(download_course_dir)
         except FileNotFoundError:
-            os.mkdir(download_course_dir)
+            os.makedirs(download_course_dir, exist_ok=True)
             os.chdir(download_course_dir)
 
         course_attachment_list = construct_attachment_list(sess=sess, token=token, pid=0, uid=uid, cid=cid)
@@ -160,7 +160,7 @@ def main():
 
                 try:
                     content_size = eval(res.headers['content-length'])
-                except Exception:
+                except:
                     print("Failed to get content length of file {}, please download it manually.".format(filename))
                     continue
 
