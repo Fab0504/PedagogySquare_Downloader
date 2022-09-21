@@ -99,7 +99,7 @@ def main():
         cid_download_list = list()
 
     cwd = os.getcwd()
-    download_dir = "D:/download_backup/pedagogysquare_download"
+    download_dir = "D:/download_backup/edge_download/pedagogysquare_download"
     for cid in cid_download_list:
         course_name = filename_filter(cid2name_dict[cid])
         print("downloading files of course {}".format(course_name))
