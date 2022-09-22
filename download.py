@@ -1,5 +1,5 @@
 import hashlib
-import json
+import toml
 import os
 import time
 import requests
@@ -44,25 +44,24 @@ def construct_attachment_list(sess, token, pid, uid, cid):
         current_page += 1
     return attachment_list
 
-def main():
-    # Load config from config.json
-    with open('config.json', 'r') as f:
-        config = json.loads(f.read())
-        user_name = config.get('username')
-        user_passwd = config.get('password')
+def main(config):
+    # Load config from config.toml
+    user_name = config['username']
+    user_passwd = config['password']
+    download_dir = config['download_dir']
 
-        download_all_cid = config.get('download_all_cid')
-        cid_certain_list = config.get('cid_certain_list')
-        cid_expel_list = config.get('cid_expel_list')
+    download_all_cid = config['download_all_cid']
+    cid_certain_list = config['cid_certain_list']
+    cid_expel_list = config['cid_expel_list']
 
-        download_all_ext = config.get('download_all_ext')
-        ext_certain_list = config.get('ext_certain_list')
-        ext_expel_list = config.get('ext_expel_list')
+    download_all_ext = config['download_all_ext']
+    ext_certain_list = config['ext_certain_list']
+    ext_expel_list = config['ext_expel_list']
 
-        download_all_filename = config.get('download_all_filename')
-        filename_certain_list = config.get('filename_certain_list')
-        filename_expel_list = config.get('filename_expel_list')
-
+    download_all_filename = config['download_all_filename']
+    filename_certain_list = config['filename_certain_list']
+    filename_expel_list = config['filename_expel_list']
+    
     sess = requests.Session()
 
     # login
@@ -99,7 +98,6 @@ def main():
         cid_download_list = list()
 
     cwd = os.getcwd()
-    download_dir = "D:/download_backup/edge_download/pedagogysquare_download"
     for cid in cid_download_list:
         course_name = filename_filter(cid2name_dict[cid])
         print("downloading files of course {}".format(course_name))
@@ -160,6 +158,7 @@ def main():
 
                 try:
                     content_size = eval(res.headers['content-length'])
+                    
                 except:
                     print("Failed to get content length of file {}, please download it manually.".format(filename))
                     continue
@@ -168,6 +167,7 @@ def main():
                     if os.path.getsize(filename) == content_size:
                         print("File \"{}\" is up-to-date".format(filename))
                         continue
+                    
                     else:
                         print("Updating File {}".format(filename))
                         os.remove(filename)
@@ -178,6 +178,7 @@ def main():
                     chunk_count = 0
                     start_time = time.time()
                     total = content_size / 1024 / 1024
+                    
                     for data in res.iter_content(chunk_size=chunk_size):
                         chunk_count += 1
                         processed = len(data) * chunk_count / 1024 / 1024
@@ -185,6 +186,7 @@ def main():
                         if chunk_count < 5:
                             print(r"Total: {:.2f} MB  Processed: {:.2f} MB ({:.2f}%)".
                                   format(total, processed, processed / total * 100), end='\r')
+                            
                         else:
                             remaining = (current_time - start_time) / processed * (total - processed)
                             print(r"Total: {:.2f} MB  Processed: {:.2f} MB ({:.2f}%), ETA {:.2f}s".
@@ -194,4 +196,5 @@ def main():
     print("done")
 
 if __name__=="__main__":
-    main()
+    config = toml.load("./config.toml")
+    main(config)
