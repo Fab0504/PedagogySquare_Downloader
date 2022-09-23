@@ -65,7 +65,6 @@ def main(config):
     sess = requests.Session()
 
     # login
-    print("login, wait ...")
     login_request = sess.post(login_url, data={"email": user_name, "password": hex_md5_stringify(user_passwd)})
     login_response = login_request.json()
     login_info = login_response['message']
@@ -83,22 +82,27 @@ def main(config):
 
     if download_all_cid:
         cid_download_list = cid2name_dict.keys()
+        
     elif len(cid_certain_list):
         cid_download_list = [str(x) for x in cid_certain_list]
         for cid in cid_certain_list:
             if not str(cid) in cid2name_dict.keys():
                 print(f"can't find course with cid {cid}")
                 cid_download_list.remove(str(cid))
+                
     elif len(cid_expel_list):
         cid_download_list = cid2name_dict.keys()
         for cid in cid_expel_list:
             if str(cid) in cid_download_list:
                 cid_download_list.remove(str(cid))
+                
     else:
         cid_download_list = list()
 
     cwd = os.getcwd()
     for cid in cid_download_list:
+        print() 
+                
         course_name = filename_filter(cid2name_dict[cid])
         print("downloading files of course {}".format(course_name))
 
@@ -106,6 +110,7 @@ def main(config):
         download_course_dir = os.path.join(download_dir, course_name)
         try:
             os.chdir(download_course_dir)
+            
         except FileNotFoundError:
             os.makedirs(download_course_dir, exist_ok=True)
             os.chdir(download_course_dir)
@@ -130,6 +135,7 @@ def main(config):
             ext = entry.get('ext')
             if ext in entry.get('title'):
                 filename = filename_filter(entry.get('title'))
+                
             else:
                 filename = filename_filter("{}.{}".format(entry.get('title'), ext))
 
@@ -160,24 +166,19 @@ def main(config):
                     content_size = eval(res.headers['content-length'])
                     
                 except:
-                    print("Failed to get content length of file {}, please download it manually.".format(filename))
+                    print("Failed to get content length of file {}, please download it manually".format(filename))
                     continue
 
                 if filename in os.listdir():
-                    if os.path.getsize(filename) == content_size:
-                        print("File \"{}\" is up-to-date".format(filename))
-                        continue
-                    
-                    else:
-                        print("Updating File {}".format(filename))
-                        os.remove(filename)
+                    print("File {} already exists".format(filename))
+                    continue
 
                 print("Downloading {}, filesize = {}".format(filename, filesize))
                 chunk_size = min(content_size, 10240)
                 with open(filename, "wb") as f:
                     chunk_count = 0
                     start_time = time.time()
-                    total = content_size / 1024 / 1024
+                    total = content_size / 1024 ** 2
                     
                     for data in res.iter_content(chunk_size=chunk_size):
                         chunk_count += 1
@@ -191,9 +192,10 @@ def main(config):
                             remaining = (current_time - start_time) / processed * (total - processed)
                             print(r"Total: {:.2f} MB  Processed: {:.2f} MB ({:.2f}%), ETA {:.2f}s".
                                   format(total, processed, processed / total * 100, remaining), end='\r')
+                            
                         f.write(data)
-        os.chdir(cwd)
-    print("done")
+           
+    os.chdir(cwd)
 
 if __name__=="__main__":
     config = toml.load("./config.toml")
